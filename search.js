@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Populate the left pane with primitive names
     function populateList() {
-        primitiveList.innerHTML = ""; // Clear the list
+        primitiveList.innerHTML = ""; 
         filteredData.forEach((item, index) => {
             const listItem = document.createElement("li");
             listItem.textContent = item.primitive_name;
@@ -49,74 +49,76 @@ document.addEventListener("DOMContentLoaded", () => {
         compositeName.textContent = item.composite_name;
     }
 
-    // Handle search dialog
     document.addEventListener("keydown", (event) => {
-        console.log("Key pressed:", event.key); // Debugging log
+        const activeElement = document.activeElement;
         if (event.key === "/") {
-            console.log("Slash key detected. Opening search dialog."); // Debugging log
             event.preventDefault();
             openSearchDialog();
+        } else if ((event.key === "j" || event.key === "k") && activeElement.id !== "search-input") {
+            event.preventDefault();
+            if (event.key === "j" && currentIndex < filteredData.length - 1) {
+                currentIndex++;
+            } else if (event.key === "k" && currentIndex > 0) {
+                currentIndex--;
+            }
+            highlightItem(currentIndex);
+            updateDetails(currentIndex);
         }
     });
 
     function openSearchDialog() {
-        console.log("openSearchDialog function called."); // Debugging log
         const searchDialog = document.createElement("div");
         searchDialog.id = "search-dialog";
         searchDialog.innerHTML = `
-            <input type="text" id="search-input" placeholder="Search...">
+            <input type="text" id="search-input" placeholder="P/C_FMA for pri/compo ID">
         `;
         document.body.appendChild(searchDialog);
 
         const searchInput = document.getElementById("search-input");
         searchInput.focus();
 
-        searchInput.addEventListener("input", () => {
+        const debouncedFilter = debounce(() => {
             const query = searchInput.value;
             filterData(query);
             populateList();
-        });
+        }, 300);
+
+        searchInput.addEventListener("input", debouncedFilter);
 
         searchInput.addEventListener("keydown", (event) => {
             if (event.key === "Escape") {
                 closeSearchDialog();
-            } else if (event.key === "ArrowDown") {
-                if (currentIndex < filteredData.length - 1) {
-                    currentIndex++;
-                    highlightItem(currentIndex);
-                    updateDetails(currentIndex);
-                }
-            } else if (event.key === "ArrowUp") {
-                if (currentIndex > 0) {
-                    currentIndex--;
-                    highlightItem(currentIndex);
-                    updateDetails(currentIndex);
-                }
             }
         });
     }
 
     function closeSearchDialog() {
-        console.log("closeSearchDialog function called."); // Debugging log
         const searchDialog = document.getElementById("search-dialog");
         if (searchDialog) {
             searchDialog.remove();
-            filteredData = data; // Reset filter
+            filteredData = data;
             populateList();
         }
     }
 
     function filterData(query) {
-        console.log("Filtering data with query:", query); // Debugging log
         if (query.startsWith("P_FMA:")) {
             const primitiveFma = query.replace("P_FMA:", "").trim();
-            filteredData = data.filter(item => item.primitive_id.includes(primitiveFma));
+            filteredData = data.filter(item => item.primitive_id === primitiveFma);
         } else if (query.startsWith("C_FMA:")) {
             const compositeFma = query.replace("C_FMA:", "").trim();
-            filteredData = data.filter(item => item.composite_id.includes(compositeFma));
+            filteredData = data.filter(item => item.composite_id === compositeFma);
         } else {
             filteredData = data.filter(item => item.primitive_name.toLowerCase().includes(query.toLowerCase()));
         }
-        currentIndex = 0; // Reset selection
+        currentIndex = 0;
+    }
+
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
     }
 });

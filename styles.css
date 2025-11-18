@@ -61,3 +61,28 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background-color: #007acc;
 }
+
+#search-dialog {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: #1e1e1e;
+    border: 1px solid #444;
+    padding: 10px;
+    z-index: 1000;
+    width: 250px;
+}
+
+#search-input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #444;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    font-size: 14px;
+}
+
+#search-input:focus {
+    outline: none;
+    border-color: #007acc;
+}
