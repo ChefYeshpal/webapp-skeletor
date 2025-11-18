@@ -1,3 +1,9 @@
+############# N O T I C E #############
+# This program was the initial python program I had thought I'd use to browse the data.txt file
+# But since I've decided to use the browser instead, it has become obsolete
+# And now I feel bad for calling it that...
+#######################################
+
 import sys
 import tty
 import termios

@@ -1,3 +1,9 @@
+############# N O T I C E #############
+# This program was just made to convert the data.txt into data.json files so the browser could read it
+# Apart from that, it has no meaningful function to the project
+# And now I feel bad for calling it that...
+#######################################
+
 import re
 import json
 
