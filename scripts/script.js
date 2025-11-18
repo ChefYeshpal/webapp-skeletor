@@ -42,6 +42,38 @@ loader.load('assets/Human-skeleton/human-skeleton.gltf', function(gltf) {
     console.error('Error loading model:', error);
 });
 
+// Add raycaster and mouse for hover detection
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let highlightedBone = null;
+
+window.addEventListener('mousemove', (event) => {
+    // Convert mouse position to normalized device coordinates (-1 to +1)
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // Perform raycasting
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(scene.children, true);
+
+    if (intersects.length > 0) {
+        const intersectedObject = intersects[0].object;
+
+        if (highlightedBone !== intersectedObject) {
+            if (highlightedBone) {
+                highlightedBone.material.emissive.set(0x000000);
+            }
+            if (intersectedObject.material) {
+                intersectedObject.material.emissive = new THREE.Color(0xffff00);
+            }
+            highlightedBone = intersectedObject;
+        }
+    } else if (highlightedBone) {
+        highlightedBone.material.emissive.set(0x000000);
+        highlightedBone = null;
+    }
+});
+
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth/window.innerHeight;
     camera.updateProjectionMatrix();
