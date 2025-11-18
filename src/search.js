@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const primitiveName = document.getElementById("primitive-name");
     const compositeId = document.getElementById("composite-id");
     const compositeName = document.getElementById("composite-name");
+    const readmeView = document.getElementById("readme-view");
 
     let currentIndex = 0;
     let data = [];
@@ -17,7 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
             data = jsonData;
             filteredData = data;
             populateList();
-            updateDetails(0);
+            currentIndex = 0;
+            highlightItem(currentIndex);
+            displayReadme();
         })
         .catch(error => console.error("Error loading data.json:", error));
 
@@ -25,16 +28,22 @@ document.addEventListener("DOMContentLoaded", () => {
     function populateList() {
         primitiveList.innerHTML = "";
         const frag = document.createDocumentFragment();
+        const pinned = document.createElement("li");
+        pinned.textContent = "README.md";
+        pinned.classList.add("pinned");
+        pinned.dataset.type = "readme";
+        frag.appendChild(pinned);
+
         const count = Math.min(filteredData.length, VISIBLE_LIMIT);
         for (let index = 0; index < count; index++) {
             const item = filteredData[index];
             const li = document.createElement("li");
             li.innerHTML = highlightName(item.primitive_name, highlightTerms);
+            // store index into filteredData
             li.dataset.index = String(index);
             frag.appendChild(li);
         }
         primitiveList.appendChild(frag);
-        highlightItem(0);
         updateSearchMeta();
     }
 
@@ -50,10 +59,66 @@ document.addEventListener("DOMContentLoaded", () => {
     // Update the right pane with details
     function updateDetails(index) {
         const item = filteredData[index];
+        if (!item) return;
+        toggleReadme(false);
         primitiveId.textContent = item.primitive_id;
         primitiveName.textContent = item.primitive_name;
         compositeId.textContent = item.composite_id;
         compositeName.textContent = item.composite_name;
+        updateImage(item.primitive_id);
+    }
+
+    function toggleReadme(show) {
+        const details = document.getElementById("details");
+        if (!details || !readmeView) return;
+        details.style.display = show ? "none" : "block";
+        readmeView.style.display = show ? "block" : "none";
+    }
+
+    function displayReadme() {
+        toggleReadme(true);
+        if (!window.marked) {
+            readmeView.textContent = "Markdown renderer not loaded";
+            return;
+        }
+        fetch("README.md")
+            .then(res => res.ok ? res.text() : Promise.reject(new Error("Failed to load README.md")))
+            .then(md => {
+                readmeView.innerHTML = window.marked.parse(md);
+            })
+            .catch(() => {
+                readmeView.textContent = "Unable to load README.md";
+            });
+    }
+
+    function updateImage(primitiveId) {
+        const img = document.getElementById("primitive-image");
+        if (!img) return;
+        if (primitiveId) {
+            const imagePath = `assets/png/${primitiveId}.png`;
+            fetch(imagePath, { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        img.src = imagePath;
+                        img.alt = `Image for Primitive ID: ${primitiveId}`;
+                        img.style.display = 'block';
+                        img.removeAttribute('data-msg');
+                    } else {
+                        img.style.display = 'block';
+                        img.removeAttribute('src');
+                        img.alt = 'Image not present';
+                        img.setAttribute('data-msg', 'Image not present');
+                    }
+                })
+                .catch(() => {
+                    img.style.display = 'block';
+                    img.removeAttribute('src');
+                    img.alt = 'Error in loading image';
+                    img.setAttribute('data-msg', 'Error in loading image');
+                });
+        } else {
+            img.style.display = 'none';
+        }
     }
 
     document.addEventListener("keydown", (event) => {
@@ -63,13 +128,15 @@ document.addEventListener("DOMContentLoaded", () => {
             openSearchDialog();
         } else if ((event.key === "j" || event.key === "k") && activeElement.id !== "search-input") {
             event.preventDefault();
-            if (event.key === "j" && currentIndex < filteredData.length - 1) {
+            const total = 1 + Math.min(filteredData.length, VISIBLE_LIMIT); // 1 for pinned README
+            if (event.key === "j" && currentIndex < total - 1) {
                 currentIndex++;
             } else if (event.key === "k" && currentIndex > 0) {
                 currentIndex--;
             }
             highlightItem(currentIndex);
-            updateDetails(currentIndex);
+            if (currentIndex === 0) displayReadme();
+            else updateDetails(currentIndex - 1);
         }
     });
 
@@ -216,10 +283,16 @@ document.addEventListener("DOMContentLoaded", () => {
     primitiveList.addEventListener("click", (e) => {
         const li = e.target.closest("li");
         if (!li) return;
+        if (li.dataset.type === "readme") {
+            currentIndex = 0;
+            highlightItem(currentIndex);
+            displayReadme();
+            return;
+        }
         const idx = Number(li.dataset.index || 0);
-        currentIndex = Math.max(0, Math.min(idx, filteredData.length - 1));
+        currentIndex = Math.max(1, Math.min(idx + 1, 1 + filteredData.length - 1));
         highlightItem(currentIndex);
-        updateDetails(currentIndex);
+        updateDetails(idx);
     });
 
     function debounce(func, wait) {

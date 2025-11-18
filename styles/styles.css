@@ -35,6 +35,16 @@ body {
     cursor: pointer;
 }
 
+#primitive-list li.pinned {
+    font-weight: 700;
+    color: #ffda6b;
+    border-bottom: 1px solid #444;
+    position: sticky;
+    top: 0;
+    background: #1e1e1e;
+    z-index: 2;
+}
+
 #primitive-list li.selected {
     background-color: #007acc;
     color: #ffffff;
@@ -45,6 +55,15 @@ body {
 }
 
 #details strong {
+    color: #569cd6;
+}
+
+#readme-view {
+    overflow-y: auto;
+    max-height: calc(100vh - 40px);
+}
+
+#readme-view a {
     color: #569cd6;
 }
 
