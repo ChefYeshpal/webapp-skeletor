@@ -3,6 +3,7 @@ import tty
 import termios
 import re
 
+
 def parse_line(line):
     tokens = line.strip().split()
     
@@ -17,7 +18,7 @@ def parse_line(line):
             break
     
     if primitive_id_idx is None or primitive_id_idx == 1 or primitive_id_idx == len(tokens)-1:
-        # Invalid line format, ignore this line with grace plj
+        # Invalid line format, ignore this line with grace
         return None
     
     # composite name is tokens from 1 to primitive_id_idx -1 (join with space)
@@ -36,6 +37,7 @@ def parse_line(line):
         "primitive_name": primitive_name
     }
 
+
 def load_data(filename='data.txt'):
     data = []
     with open(filename, 'r') as f:
@@ -45,20 +47,29 @@ def load_data(filename='data.txt'):
                 data.append(parsed)
     return data
 
+
+def keyword_priority(entry):
+    keywords = ['bone', 'bones', 'vertebra', 'vertebrae']
+    text = (entry['composite_name'] + ' ' + entry['primitive_name']).lower()
+    return any(kw in text for kw in keywords)
+
+
 def get_key():
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
     try:
         tty.setraw(fd)
         ch = sys.stdin.read(1)
-        if ch == '\x1b': 
+        if ch == '\x1b':  # Escape sequence
             ch += sys.stdin.read(2)
         return ch
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
+
 def clear():
     print('\033[H\033[J', end='')
+
 
 def print_list(data, selected_idx, offset=0, max_rows=20):
     visible_data = data[offset:offset+max_rows]
@@ -70,6 +81,7 @@ def print_list(data, selected_idx, offset=0, max_rows=20):
         else:
             print(line)
 
+
 def print_detail(entry):
     clear()
     print(f"Primitive name: {entry['primitive_name']}")
@@ -78,12 +90,16 @@ def print_detail(entry):
     print(f"Compositive ID: {entry['composite_id']}")
     print('\nPress q to return to list.')
 
+
 def main():
     data = load_data()
     if not data:
         print("No data found in data.txt")
         return
-    
+
+    # Sort data so entries with bone/vertebra keywords appear first
+    data.sort(key=lambda e: (not keyword_priority(e),))
+
     selected_idx = 0
     offset = 0
     max_rows = 30
@@ -113,6 +129,7 @@ def main():
                 key2 = get_key()
                 if key2 == 'q':
                     break
+
 
 if __name__ == '__main__':
     main()
