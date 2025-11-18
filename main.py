@@ -4,31 +4,24 @@ import termios
 import re
 
 
+
 def parse_line(line):
     tokens = line.strip().split()
     
-    # composite ID is the first token
     composite_id = tokens[0]
     
-    # Find the position of primitive id by detecting token starting with BP, FMA, or similar patterns
     primitive_id_idx = None
     for i in range(1, len(tokens)):
         if re.match(r'(BP|FMA)\d+', tokens[i]):
             primitive_id_idx = i
             break
     
-    if primitive_id_idx is None or primitive_id_idx == 1 or primitive_id_idx == len(tokens)-1:
-        # Invalid line format, ignore this line with grace
+    if primitive_id_idx is None or primitive_id_idx == 1 or primitive_id_idx == len(tokens) - 1:
         return None
     
-    # composite name is tokens from 1 to primitive_id_idx -1 (join with space)
     composite_name = ' '.join(tokens[1:primitive_id_idx])
-    
-    # primitive ID token
     primitive_id = tokens[primitive_id_idx]
-    
-    # primitive name is everything after primitive ID
-    primitive_name = ' '.join(tokens[primitive_id_idx+1:])
+    primitive_name = ' '.join(tokens[primitive_id_idx + 1:])
     
     return {
         "composite_id": composite_id,
@@ -36,6 +29,7 @@ def parse_line(line):
         "primitive_id": primitive_id,
         "primitive_name": primitive_name
     }
+
 
 
 def load_data(filename='data.txt'):
@@ -48,10 +42,12 @@ def load_data(filename='data.txt'):
     return data
 
 
+
 def keyword_priority(entry):
     keywords = ['bone', 'bones', 'vertebra', 'vertebrae']
     text = (entry['composite_name'] + ' ' + entry['primitive_name']).lower()
     return any(kw in text for kw in keywords)
+
 
 
 def get_key():
@@ -60,26 +56,34 @@ def get_key():
     try:
         tty.setraw(fd)
         ch = sys.stdin.read(1)
-        if ch == '\x1b':  # Escape sequence
+        if ch == '\x1b':
             ch += sys.stdin.read(2)
         return ch
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
 
+
 def clear():
     print('\033[H\033[J', end='')
 
 
-def print_list(data, selected_idx, offset=0, max_rows=20):
-    visible_data = data[offset:offset+max_rows]
+
+def print_list(data, selected_idx, offset=0, max_rows=20, match_indices=None, search_query=""):
+    visible_data = data[offset:offset + max_rows]
     for i, entry in enumerate(visible_data):
-        prefix = '→ ' if i+offset == selected_idx else '  '
-        line = f"{prefix}{entry['primitive_name']}"
-        if i+offset == selected_idx:
-            print('\033[7m' + line + '\033[0m')
+        global_idx = i + offset
+        prefix = '→ ' if global_idx == selected_idx else '  '
+        line = entry['primitive_name']
+        if match_indices is not None and global_idx in match_indices:
+            line_display = f"\033[32m{line}\033[0m"
         else:
-            print(line)
+            line_display = line
+        if global_idx == selected_idx:
+            print('\033[7m' + prefix + line_display + '\033[0m')
+        else:
+            print(prefix + line_display)
+
 
 
 def print_detail(entry):
@@ -91,44 +95,119 @@ def print_detail(entry):
     print('\nPress q to return to list.')
 
 
+
 def main():
     data = load_data()
     if not data:
         print("No data found in data.txt")
         return
 
-    # Sort data so entries with bone/vertebra keywords appear first
+
     data.sort(key=lambda e: (not keyword_priority(e),))
+
 
     selected_idx = 0
     offset = 0
     max_rows = 30
 
+
+    search_mode = False
+    search_query = ""
+    match_indices = []
+    match_pos = 0
+
+
     while True:
         clear()
-        print("Use 'j' (down), 'k' (up), Enter to select, 'q' to quit.\n")
-        print_list(data, selected_idx, offset, max_rows)
+        if not search_mode:
+            print("Use 'j' (down), 'k' (up), ↑ / ↓ arrows also, Enter to select, 'q' to quit, / to search.\n")
+            print_list(data, selected_idx, offset, max_rows)
+        else:
+            print("Search: " + search_query)
+            print_list(data, selected_idx, offset, max_rows, match_indices, search_query)
+
 
         key = get_key()
-        
-        if key == 'q':
-            break
-        elif key == 'j':
-            if selected_idx < len(data) - 1:
-                selected_idx += 1
-                if selected_idx >= offset + max_rows:
-                    offset += 1
-        elif key == 'k':
-            if selected_idx > 0:
-                selected_idx -= 1
-                if selected_idx < offset:
-                    offset -= 1
-        elif key == '\r' or key == '\n':
-            while True:
-                print_detail(data[selected_idx])
-                key2 = get_key()
-                if key2 == 'q':
-                    break
+
+
+        if not search_mode:
+            if key == 'q':
+                break
+            elif key == 'j' or key == '\x1b[B':
+                if selected_idx < len(data) - 1:
+                    selected_idx += 1
+                    if selected_idx >= offset + max_rows:
+                        offset += 1
+            elif key == 'k' or key == '\x1b[A':
+                if selected_idx > 0:
+                    selected_idx -= 1
+                    if selected_idx < offset:
+                        offset -= 1
+            elif key == '\r' or key == '\n':
+                while True:
+                    print_detail(data[selected_idx])
+                    key2 = get_key()
+                    if key2 == 'q':
+                        break
+            elif key == '/':
+                search_mode = True
+                search_query = ""
+                match_indices = []
+                match_pos = 0
+        else:
+            if key == '\x7f' or key == '\b':
+                search_query = search_query[:-1]
+            elif key == '\r' or key == '\n':
+                if match_indices:
+                    selected_idx = match_indices[match_pos]
+                    if selected_idx < offset:
+                        offset = selected_idx
+                    elif selected_idx >= offset + max_rows:
+                        offset = selected_idx - max_rows + 1
+                search_mode = False
+            elif key == '\x1b':
+                search_mode = False
+                match_indices = []
+                search_query = ""
+            elif key == 'n':
+                if match_indices:
+                    match_pos = (match_pos + 1) % len(match_indices)
+                    selected_idx = match_indices[match_pos]
+                    if selected_idx < offset:
+                        offset = selected_idx
+                    elif selected_idx >= offset + max_rows:
+                        offset = selected_idx - max_rows + 1
+            else:
+                if key == ':':
+                    next_char = sys.stdin.read(1)
+                    if next_char == 'q':
+                        search_mode = False
+                        match_indices = []
+                        search_query = ""
+                        continue
+                    else:
+                        search_query += ':' + next_char
+                elif len(key) == 1 and key.isprintable():
+                    search_query += key
+
+
+            if search_query:
+                lq = search_query.lower()
+                match_indices = [i for i, e in enumerate(data)
+                                 if lq in e['primitive_name'].lower() or lq in e['composite_name'].lower()]
+                if match_indices:
+                    match_pos = 0
+                    selected_idx = match_indices[match_pos]
+                    if selected_idx < offset:
+                        offset = selected_idx
+                    elif selected_idx >= offset + max_rows:
+                        offset = selected_idx - max_rows + 1
+                else:
+                    match_pos = 0
+            else:
+                match_indices = []
+                match_pos = 0
+
 
 
 if __name__ == '__main__':
