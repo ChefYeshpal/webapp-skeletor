@@ -62,6 +62,12 @@ body {
     background-color: #007acc;
 }
 
+mark.hl {
+    background: #5a5a00;
+    color: #fff;
+    padding: 0 2px;
+}
+
 #search-dialog {
     position: fixed;
     top: 10px;

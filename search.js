@@ -8,6 +8,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentIndex = 0;
     let data = [];
     let filteredData = [];
+    const VISIBLE_LIMIT = 300;
+    let highlightTerms = [];
 
     fetch("data.json")
         .then(response => response.json())
@@ -21,14 +23,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Populate the left pane with primitive names
     function populateList() {
-        primitiveList.innerHTML = ""; 
-        filteredData.forEach((item, index) => {
-            const listItem = document.createElement("li");
-            listItem.textContent = item.primitive_name;
-            listItem.dataset.index = index;
-            primitiveList.appendChild(listItem);
-        });
+        primitiveList.innerHTML = "";
+        const frag = document.createDocumentFragment();
+        const count = Math.min(filteredData.length, VISIBLE_LIMIT);
+        for (let index = 0; index < count; index++) {
+            const item = filteredData[index];
+            const li = document.createElement("li");
+            li.innerHTML = highlightName(item.primitive_name, highlightTerms);
+            li.dataset.index = String(index);
+            frag.appendChild(li);
+        }
+        primitiveList.appendChild(frag);
         highlightItem(0);
+        updateSearchMeta();
     }
 
     function highlightItem(index) {
@@ -71,6 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
         searchDialog.id = "search-dialog";
         searchDialog.innerHTML = `
             <input type="text" id="search-input" placeholder="P/C_FMA for pri/compo ID">
+            <div id="search-meta" aria-live="polite" style="margin-top:6px;font-size:12px;color:#9aa0a6"></div>
         `;
         document.body.appendChild(searchDialog);
 
@@ -81,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const query = searchInput.value;
             filterData(query);
             populateList();
-        }, 300);
+        }, 200);
 
         searchInput.addEventListener("input", debouncedFilter);
 
@@ -102,17 +110,117 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function filterData(query) {
-        if (query.startsWith("P_FMA:")) {
-            const primitiveFma = query.replace("P_FMA:", "").trim();
-            filteredData = data.filter(item => item.primitive_id === primitiveFma);
-        } else if (query.startsWith("C_FMA:")) {
-            const compositeFma = query.replace("C_FMA:", "").trim();
-            filteredData = data.filter(item => item.composite_id === compositeFma);
-        } else {
-            filteredData = data.filter(item => item.primitive_name.toLowerCase().includes(query.toLowerCase()));
-        }
+        const { filters, terms, regex } = parseQuery(query);
+        highlightTerms = terms;
+        filteredData = data.filter(item => {
+            let ok = true;
+            if (regex) {
+                ok = regex.test(item.primitive_name);
+            } else if (terms.length) {
+                const n = item.primitive_name.toLowerCase();
+                ok = terms.every(t => n.includes(t));
+            }
+
+            // Structured filters (ANDed)
+            if (!ok) return false;
+            for (const f of filters) {
+                let source = "";
+                if (f.key === "p_fma") source = String(item.primitive_id ?? "");
+                else if (f.key === "c_fma") source = String(item.composite_id ?? "");
+                else if (f.key === "name") source = String(item.primitive_name ?? "").toLowerCase();
+                const q = f.key === "name" ? f.value.toLowerCase() : f.value;
+                if (!matchByMode(source, q, f.mode, f.key === "name")) return false;
+            }
+            return true;
+        });
         currentIndex = 0;
     }
+
+    function parseQuery(raw) {
+        const q = (raw || "").trim();
+        const filters = [];
+        const terms = [];
+        let regex = null;
+
+        if (!q) return { filters, terms, regex };
+
+        // Regex mode: /pattern/i
+        if (q.startsWith("/") && q.lastIndexOf("/") > 0) {
+            const last = q.lastIndexOf("/");
+            const pattern = q.slice(1, last);
+            const flags = q.slice(last + 1);
+            try { regex = new RegExp(pattern, flags || "i"); } catch { /* ignore */ }
+            return { filters, terms, regex };
+        }
+
+        // Tokenize by spaces respecting quotes
+        const tokens = q.match(/\"[^\"]+\"|\S+/g) || [];
+        for (let token of tokens) {
+            token = token.replace(/^\"|\"$/g, "");
+            const m = token.match(/^(p_fma|P_FMA|c_fma|C_FMA|name|NAME|n|N)(\^?=|\*=|=|:)(.+)$/);
+            if (m) {
+                const keyRaw = m[1];
+                const op = m[2];
+                const val = m[3].trim();
+                const key = /p_fma/i.test(keyRaw) ? "p_fma" : /c_fma/i.test(keyRaw) ? "c_fma" : "name";
+                const mode = op === "=" ? "exact" : op === "^=" ? "starts" : "contains"; // includes ':' and '*='
+                if (val) filters.push({ key, mode, value: val });
+            } else if (/^(P_FMA:|C_FMA:)/.test(token)) {
+                // legacy prefix support P_FMA:123, C_FMA:456
+                const isP = token.startsWith("P_FMA:");
+                const val = token.split(":")[1].trim();
+                if (val) filters.push({ key: isP ? "p_fma" : "c_fma", mode: "contains", value: val });
+            } else {
+                terms.push(token.toLowerCase());
+            }
+        }
+        return { filters, terms, regex };
+    }
+
+    function matchByMode(source, value, mode, caseInsensitive) {
+        const s = caseInsensitive ? String(source).toLowerCase() : String(source);
+        const v = caseInsensitive ? String(value).toLowerCase() : String(value);
+        if (mode === "exact") return s === v; // accuracy: whole ID must match
+        if (mode === "starts") return s.startsWith(v); 
+        return s.includes(v);
+    }
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function highlightName(name, terms) {
+        if (!terms || terms.length === 0) return escapeHtml(name);
+        let out = escapeHtml(name);
+        for (const t of terms) {
+            if (!t) continue;
+            const re = new RegExp(`(${t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "ig");
+            out = out.replace(re, '<mark class="hl">$1</mark>');
+        }
+        return out;
+    }
+
+    function updateSearchMeta() {
+        const meta = document.getElementById("search-meta");
+        if (!meta) return;
+        const total = filteredData.length;
+        const showing = Math.min(total, VISIBLE_LIMIT);
+        meta.textContent = total === 0 ? "No results" : `Showing ${showing} of ${total}`;
+    }
+
+    primitiveList.addEventListener("click", (e) => {
+        const li = e.target.closest("li");
+        if (!li) return;
+        const idx = Number(li.dataset.index || 0);
+        currentIndex = Math.max(0, Math.min(idx, filteredData.length - 1));
+        highlightItem(currentIndex);
+        updateDetails(currentIndex);
+    });
 
     function debounce(func, wait) {
         let timeout;
