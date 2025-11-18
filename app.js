@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const primitiveName = document.getElementById("primitive-name");
     const compositeId = document.getElementById("composite-id");
     const compositeName = document.getElementById("composite-name");
+    const primitiveImage = document.getElementById("primitive-image");
 
     let currentIndex = 0;
     let data = [];
@@ -53,6 +54,34 @@ document.addEventListener("DOMContentLoaded", () => {
         primitiveName.textContent = item.primitive_name;
         compositeId.textContent = item.composite_id;
         compositeName.textContent = item.composite_name;
+        updateImage(item.primitive_id);
+    }
+
+    function updateImage(primitiveId) {
+        if (primitiveId) {
+            const imagePath = `assets/png/${primitiveId}.png`;
+            fetch(imagePath, { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        primitiveImage.src = imagePath;
+                        primitiveImage.alt = `Image for Primitive ID: ${primitiveId}`;
+                        primitiveImage.style.display = 'block';
+                    } else {
+                        primitiveImage.style.display = 'block';
+                        primitiveImage.src = '';
+                        primitiveImage.alt = 'Image not present';
+                        primitiveImage.textContent = 'Image not present';
+                    }
+                })
+                .catch(() => {
+                    primitiveImage.style.display = 'block';
+                    primitiveImage.src = '';
+                    primitiveImage.alt = 'Error in loading image';
+                    primitiveImage.textContent = 'Error in loading image';
+                });
+        } else {
+            primitiveImage.style.display = 'none';
+        }
     }
 
     // key nav
