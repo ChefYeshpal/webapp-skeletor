@@ -20,8 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // data prioritization
     function sortData(data) {
         return data.sort((a, b) => {
-            const aPriority = /bone|vertebrae/i.test(a.primitive_name) ? 1 : 0;
-            const bPriority = /bone|vertebrae/i.test(b.primitive_name) ? 1 : 0;
+            const aPriority = /bone|vertebrae|tooth/i.test(a.primitive_name) ? 1 : 0;
+            const bPriority = /bone|vertebrae|tooth/i.test(b.primitive_name) ? 1 : 0;
             return bPriority - aPriority;
         });
     }
