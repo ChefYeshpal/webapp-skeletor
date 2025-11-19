@@ -91,8 +91,7 @@ if (!src) {
       if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
         throw new Error('File appears to be HTML (likely a 404 page), not an STL.');
       }
-
-      // If safe, THEN parse it (I think this was the point of failure?)
+      
       const geometry = loader.parse(buffer);
       console.log('STL parsed successfully');
 
