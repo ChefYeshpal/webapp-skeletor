@@ -69,31 +69,55 @@ if (!src) {
   document.body.appendChild(div);
 } else {
   console.log('Attempting to load STL from:', src);
-  loader.load(src, (geometry) => {
-    console.log('STL loaded successfully:', src);
-    geometry.computeVertexNormals();
-    const material = new THREE.MeshStandardMaterial({ color: 0xb0c4de, metalness: 0.05, roughness: 0.8 });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    scene.add(mesh);
-    fitCameraToObject(mesh);
-  }, (xhr) => {
-    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-  }, (err) => {
-    console.error('Error loading STL:', err);
-    const div = document.createElement('div');
-    div.textContent = 'Failed to load STL. Check console for details.';
-    div.style.position = 'fixed';
-    div.style.top = '50%';
-    div.style.left = '50%';
-    div.style.transform = 'translate(-50%, -50%)';
-    div.style.background = 'rgba(0,0,0,0.8)';
-    div.style.padding = '20px';
-    div.style.border = '1px solid #f00';
-    div.style.color = '#f00';
-    document.body.appendChild(div);
-  });
+  
+  fetch(src)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.arrayBuffer();
+    })
+    .then(buffer => {
+      console.log('STL downloaded. Size:', buffer.byteLength, 'bytes');
+      
+      // Peek at the first few bytes to check for text (LFS pointer or HTML)
+      const decoder = new TextDecoder();
+      const text = decoder.decode(buffer.slice(0, 200));
+      console.log('File header preview:', text);
+
+      if (text.includes('version https://git-lfs.github.com')) {
+        throw new Error('File is a Git LFS pointer, not the actual STL binary. GitHub Pages does not serve LFS files directly.');
+      }
+      if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+        throw new Error('File appears to be HTML (likely a 404 page), not an STL.');
+      }
+
+      // If safe, THEN parse it (I think this was the point of failure?)
+      const geometry = loader.parse(buffer);
+      console.log('STL parsed successfully');
+
+      geometry.computeVertexNormals();
+      const material = new THREE.MeshStandardMaterial({ color: 0xb0c4de, metalness: 0.05, roughness: 0.8 });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      scene.add(mesh);
+      fitCameraToObject(mesh);
+    })
+    .catch(err => {
+      console.error('Error loading STL:', err);
+      const div = document.createElement('div');
+      div.textContent = 'Failed to load STL: ' + err.message;
+      div.style.position = 'fixed';
+      div.style.top = '50%';
+      div.style.left = '50%';
+      div.style.transform = 'translate(-50%, -50%)';
+      div.style.background = 'rgba(0,0,0,0.8)';
+      div.style.padding = '20px';
+      div.style.border = '1px solid #f00';
+      div.style.color = '#f00';
+      document.body.appendChild(div);
+    });
 }
 
 window.addEventListener('resize', () => {
