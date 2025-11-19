@@ -6,6 +6,84 @@ document.addEventListener("DOMContentLoaded", () => {
     const compositeName = document.getElementById("composite-name");
     const primitiveImage = document.getElementById("primitive-image");
 
+    const assetState = window.__assetManifestState || (window.__assetManifestState = {
+        png: new Set(),
+        stl: new Set(),
+        cached: { png: new Set(), stl: new Set() },
+        missing: { png: new Set(), stl: new Set() },
+        failed: false,
+        promise: null
+    });
+
+    if (!assetState.promise) {
+        assetState.promise = fetch("assets/manifest.json")
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`Manifest request failed with status ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(manifest => {
+                (manifest?.png || []).forEach(name => assetState.png.add(name));
+                (manifest?.stl || []).forEach(name => assetState.stl.add(name));
+                assetState.failed = false;
+                return assetState;
+            })
+            .catch(error => {
+                assetState.failed = true;
+                console.warn("Asset manifest unavailable, falling back to on-demand checks.", error);
+                return assetState;
+            });
+    }
+
+    if (!assetState.checkAvailability) {
+        assetState.checkAvailability = function checkAvailability(type, fileName) {
+            if (!fileName) {
+                return Promise.resolve(false);
+            }
+            const manifestPromise = assetState.promise;
+            if (!assetState.cached[type]) {
+                assetState.cached[type] = new Set();
+            }
+            if (!assetState.missing[type]) {
+                assetState.missing[type] = new Set();
+            }
+            return manifestPromise.then(() => {
+                const registry = assetState[type];
+                if (registry && registry.has(fileName)) {
+                    return true;
+                }
+                if (!assetState.failed) {
+                    return false;
+                }
+                const cacheHit = assetState.cached[type]?.has(fileName);
+                if (cacheHit) {
+                    return true;
+                }
+                const cacheMiss = assetState.missing[type]?.has(fileName);
+                if (cacheMiss) {
+                    return false;
+                }
+                const assetPath = type === "png" ? `assets/png/${fileName}` : `assets/stl/${fileName}`;
+                return fetch(assetPath, { method: "HEAD" })
+                    .then(res => {
+                        if (res.ok) {
+                            assetState.cached[type].add(fileName);
+                            return true;
+                        }
+                        assetState.missing[type].add(fileName);
+                        return false;
+                    })
+                    .catch(() => {
+                        assetState.missing[type].add(fileName);
+                        return false;
+                    });
+            });
+        };
+    }
+
+    const checkAssetAvailability = assetState.checkAvailability;
+
     let currentIndex = 0;
     let data = [];
 
@@ -82,25 +160,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateImage(primitiveId) {
         if (primitiveId) {
-            const imagePath = `assets/png/${primitiveId}.png`;
-            fetch(imagePath, { method: 'HEAD' })
-                .then(response => {
-                    if (response.ok) {
+            const fileName = `${primitiveId}.png`;
+            const imagePath = `assets/png/${fileName}`;
+            checkAssetAvailability('png', fileName)
+                .then(isAvailable => {
+                    if (isAvailable) {
                         primitiveImage.src = imagePath;
                         primitiveImage.alt = `Image for Primitive ID: ${primitiveId}`;
                         primitiveImage.style.display = 'block';
+                        primitiveImage.removeAttribute('data-msg');
                     } else {
                         primitiveImage.style.display = 'block';
-                        primitiveImage.src = '';
-                        primitiveImage.alt = 'Image not present';
-                        primitiveImage.textContent = 'Image not present';
+                        primitiveImage.removeAttribute('src');
+                        primitiveImage.alt = 'Image not available';
+                        primitiveImage.setAttribute('data-msg', 'Image not available');
                     }
                 })
                 .catch(() => {
                     primitiveImage.style.display = 'block';
-                    primitiveImage.src = '';
-                    primitiveImage.alt = 'Error in loading image';
-                    primitiveImage.textContent = 'Error in loading image';
+                    primitiveImage.removeAttribute('src');
+                    primitiveImage.alt = 'Image not available';
+                    primitiveImage.setAttribute('data-msg', 'Image not available');
                 });
         } else {
             primitiveImage.style.display = 'none';

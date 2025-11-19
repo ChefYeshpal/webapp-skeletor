@@ -6,6 +6,87 @@ document.addEventListener("DOMContentLoaded", () => {
     const compositeName = document.getElementById("composite-name");
     const readmeView = document.getElementById("readme-view");
 
+    const assetState = window.__assetManifestState || (window.__assetManifestState = {
+        png: new Set(),
+        stl: new Set(),
+        cached: { png: new Set(), stl: new Set() },
+        missing: { png: new Set(), stl: new Set() },
+        failed: false,
+        promise: null
+    });
+
+    if (!assetState.promise) {
+        assetState.promise = fetch("assets/manifest.json")
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`Manifest request failed with status ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(manifest => {
+                (manifest?.png || []).forEach(name => assetState.png.add(name));
+                (manifest?.stl || []).forEach(name => assetState.stl.add(name));
+                assetState.failed = false;
+                return assetState;
+            })
+            .catch(error => {
+                assetState.failed = true;
+                // golf is a pretty shitty game, like... you gotta put a ball, in a hole...
+                // And that ball? it can be started like... 100 meters away and BOOM! people make a hole in one somehow?
+                // I'm telling you, this game is rigged (or the players are just insanely good...)
+                console.warn("Asset manifest unavailable; falling back to on-demand checks.", error);
+                return assetState;
+            });
+    }
+
+    if (!assetState.checkAvailability) {
+        assetState.checkAvailability = function checkAvailability(type, fileName) {
+            if (!fileName) {
+                return Promise.resolve(false);
+            }
+            const manifestPromise = assetState.promise;
+            if (!assetState.cached[type]) {
+                assetState.cached[type] = new Set();
+            }
+            if (!assetState.missing[type]) {
+                assetState.missing[type] = new Set();
+            }
+            return manifestPromise.then(() => {
+                const registry = assetState[type];
+                if (registry && registry.has(fileName)) {
+                    return true;
+                }
+                if (!assetState.failed) {
+                    return false;
+                }
+                const cacheHit = assetState.cached[type]?.has(fileName);
+                if (cacheHit) {
+                    return true;
+                }
+                const cacheMiss = assetState.missing[type]?.has(fileName);
+                if (cacheMiss) {
+                    return false;
+                }
+                const assetPath = type === "png" ? `assets/png/${fileName}` : `assets/stl/${fileName}`;
+                return fetch(assetPath, { method: "HEAD" })
+                    .then(res => {
+                        if (res.ok) {
+                            assetState.cached[type].add(fileName);
+                            return true;
+                        }
+                        assetState.missing[type].add(fileName);
+                        return false;
+                    })
+                    .catch(() => {
+                        assetState.missing[type].add(fileName);
+                        return false;
+                    });
+            });
+        };
+    }
+
+    const checkAssetAvailability = assetState.checkAvailability;
+
     let currentIndex = 0;
     let data = [];
     let filteredData = [];
@@ -117,10 +198,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const img = document.getElementById("primitive-image");
         if (!img) return;
         if (primitiveId) {
-            const imagePath = `assets/png/${primitiveId}.png`;
-            fetch(imagePath, { method: 'HEAD' })
-                .then(response => {
-                    if (response.ok) {
+            const fileName = `${primitiveId}.png`;
+            const imagePath = `assets/png/${fileName}`;
+            checkAssetAvailability('png', fileName)
+                .then(isAvailable => {
+                    if (isAvailable) {
                         img.src = imagePath;
                         img.alt = `Image for Primitive ID: ${primitiveId}`;
                         img.style.display = 'block';
@@ -128,15 +210,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     } else {
                         img.style.display = 'block';
                         img.removeAttribute('src');
-                        img.alt = 'Image not present';
-                        img.setAttribute('data-msg', 'Image not present');
+                        img.alt = 'Image not available';
+                        img.setAttribute('data-msg', 'Image not available');
                     }
                 })
                 .catch(() => {
                     img.style.display = 'block';
                     img.removeAttribute('src');
-                    img.alt = 'Error in loading image';
-                    img.setAttribute('data-msg', 'Error in loading image');
+                    img.alt = 'Image not available';
+                    img.setAttribute('data-msg', 'Image not available');
                 });
         } else {
             img.style.display = 'none';
@@ -152,10 +234,11 @@ document.addEventListener("DOMContentLoaded", () => {
             btn.removeAttribute('data-src');
             return;
         }
-        const stlPath = `assets/stl/${primitiveId}.stl`;
-        fetch(stlPath, { method: 'HEAD' })
-            .then(res => {
-                if (res.ok) {
+        const fileName = `${primitiveId}.stl`;
+        const stlPath = `assets/stl/${fileName}`;
+        checkAssetAvailability('stl', fileName)
+            .then(isAvailable => {
+                if (isAvailable) {
                     btn.disabled = false;
                     btn.title = 'Open 3D STL viewer';
                     btn.setAttribute('data-src', stlPath);

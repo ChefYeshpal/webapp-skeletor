@@ -53,8 +53,6 @@ Data should be listed as such:
     - Etymology
 
 ### A few warnings:
-- Muscles dont really work properly when you zoom in to view the stl viewer
-    - They just dissapear
-    - I wasn't able to find a fix for this yet...
 - Images and `.stl` files might take some time to load depending on your internet connection
 - This entire project is being hosted on [GitHub](https://github.com) Pages, so ofc it's uptime also depends on that.
+- The specifications isn't exactly accurate, still working on it.
