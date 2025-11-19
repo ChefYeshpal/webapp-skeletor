@@ -46,3 +46,8 @@ Data should be listed as such:
     - Body region
     - Function
     - Etumology
+
+### A few warnings:
+- Muscles dont really work properly when you zoom in to view the stl viewer
+    - They just dissapear
+    - I wasn't able to find a fix for this yet...
