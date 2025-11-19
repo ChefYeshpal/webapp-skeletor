@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const VISIBLE_LIMIT = 300;
     let highlightTerms = [];
 
-    fetch("data.json")
+    fetch("data_enriched.json")
         .then(response => response.json())
         .then(jsonData => {
             data = jsonData;
@@ -67,6 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
         compositeName.textContent = item.composite_name;
         updateImage(item.primitive_id);
         updateStlButton(item.primitive_id);
+        renderSpecifications(item.specifications);
     }
 
     function toggleReadme(show) {
@@ -149,6 +150,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.title = 'No STL found';
                 btn.removeAttribute('data-src');
             });
+    }
+
+    function renderSpecifications(spec) {
+        const container = document.getElementById('specifications');
+        if (!container) return;
+        container.innerHTML = '';
+        if (!spec || typeof spec !== 'object' || Object.keys(spec).length === 0) {
+            container.innerHTML = '<h4>Specifications</h4><em style="color:#777">None available</em>';
+            return;
+        }
+        const list = document.createElement('ul');
+        for (const [key, value] of Object.entries(spec)) {
+            const li = document.createElement('li');
+            const prettyKey = key.replace(/_/g,' ').replace(/\b(mm|cm|m)\b/i, '$1');
+            li.innerHTML = `<code>${prettyKey}</code>: ${value}`;
+            list.appendChild(li);
+        }
+        const heading = document.createElement('h4');
+        heading.textContent = 'Specifications';
+        container.appendChild(heading);
+        container.appendChild(list);
     }
 
     document.addEventListener("keydown", (event) => {

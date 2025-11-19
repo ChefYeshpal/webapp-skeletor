@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentIndex = 0;
     let data = [];
 
-    fetch("data.json")
+    fetch("data_enriched.json")
         .then(response => response.json())
         .then(jsonData => {
             data = sortData(jsonData);
@@ -50,11 +50,34 @@ document.addEventListener("DOMContentLoaded", () => {
     // Update the right pane with details
     function updateDetails(index) {
         const item = data[index];
+        if (!item) return;
         primitiveId.textContent = item.primitive_id;
         primitiveName.textContent = item.primitive_name;
         compositeId.textContent = item.composite_id;
         compositeName.textContent = item.composite_name;
         updateImage(item.primitive_id);
+        renderSpecifications(item.specifications);
+    }
+
+    function renderSpecifications(spec) {
+        const container = document.getElementById('specifications');
+        if (!container) return;
+        container.innerHTML = '';
+        if (!spec || typeof spec !== 'object' || Object.keys(spec).length === 0) {
+            container.innerHTML = '<h4>Specifications</h4><em style="color:#777">None available</em>';
+            return;
+        }
+        const list = document.createElement('ul');
+        for (const [key, value] of Object.entries(spec)) {
+            const li = document.createElement('li');
+            const prettyKey = key.replace(/_/g,' ').replace(/\b(mm|cm|m)\b/i, '$1');
+            li.innerHTML = `<code>${prettyKey}</code>: ${value}`;
+            list.appendChild(li);
+        }
+        const heading = document.createElement('h4');
+        heading.textContent = 'Specifications';
+        container.appendChild(heading);
+        container.appendChild(list);
     }
 
     function updateImage(primitiveId) {

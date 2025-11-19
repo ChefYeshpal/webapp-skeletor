@@ -8,7 +8,7 @@ This is a project made for [Siege](siege.hackclub.com) by [Hackclub](hackclub.co
 - Osteometric data: [DCP2.0 from Mendeley.com](https://data.mendeley.com/datasets/6xwhzs2w38/1)
 
 ### What is the FMA Ontology?
-The Foundational Model of Anatomy Ontology (FMA) is an evolving computer-based knowledge source for biomedical informatics; it is concerned with the representation of classes or types and relationships necessary for the symbolic representation of the phenotypic structure of the human body in a form that is understandable to humans and is also navigable, parseable and interpretable by machine-based systems. Specifically, the FMA is a domain ontology that represents a coherent body of explicit declarative knowledge about human anatomy. Its ontological *framework* can be applied and extended to all other species. [source](http://sig.biostr.washington.edu/projects/fm/AboutFM.html)
+*"The Foundational Model of Anatomy Ontology (FMA) is an evolving computer-based knowledge source for biomedical informatics; it is concerned with the representation of classes or types and relationships necessary for the symbolic representation of the phenotypic structure of the human body in a form that is understandable to humans and is also navigable, parseable and interpretable by machine-based systems. Specifically, the FMA is a domain ontology that represents a coherent body of explicit declarative knowledge about human anatomy. Its ontological **framework** can be applied and extended to all other species."* [source](http://sig.biostr.washington.edu/projects/fm/AboutFM.html)
 
 ## A list of thingies
 - [x] Panes
@@ -19,12 +19,12 @@ The Foundational Model of Anatomy Ontology (FMA) is an evolving computer-based k
 - [x] Search
     - [x] Advanced search with parameters
 - [ ] Specifications
-    - Size: lxbxh
-    - Density:
-    - Attached muscles:
-    - Body region (e.g., head, thorax, limbs)
-    - Function
-    - Etymology or origin of names of the thingy
+    - [x] Size: lxbxh
+    - [ ] Density:
+    - [ ] Attached muscles:
+    - [ ] Body region (e.g., head, thorax, limbs)
+    - [ ] Function
+    - [ ] Etymology or origin of names of the thingy
 - [x] Images
     - Should be visible by taking the primary id and searching in the `assets/png/` folder
 - [x] STL viewer
@@ -39,9 +39,10 @@ Data should be listed as such:
 - Composite Name:
 - [Image]
 - [STL view in new page]
-- Size: length x breadth x height
-- Density
-- Attached Muscles (for bones)
-- Body region
-- Function
-- Etumology
+- Specifiations
+    - Size: length x breadth x height
+    - Density
+    - Attached Muscles (for bones)
+    - Body region
+    - Function
+    - Etumology
