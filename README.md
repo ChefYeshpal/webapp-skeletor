@@ -1,6 +1,11 @@
 # webapp-skeletor
 This is a project made for [Siege](https://siege.hackclub.com) by [Hackclub](https://hackclub.com). The theme for this project was ["Framework"](https://dictionary.cambridge.org/dictionary/learner-english/framework), and as such, my thinking of making this project, believing that it comes within the theme for this week's project is that: The Human bones and skeletal structure's are the **framework** to the Human body, so this project aims to describe the (major) bones and give detailed classification and information about them.
 
+### How to use
+- Use `j/k` keys or `arrow keys` to move up or down
+- Use `/` to initiate search
+- That's it really...
+
 ## Credits
 
 - FMA data: [Ontobee.org](https://ontobee.org/)
