@@ -51,4 +51,3 @@ Data should be listed as such:
 - Muscles dont really work properly when you zoom in to view the stl viewer
     - They just dissapear
     - I wasn't able to find a fix for this yet...
-- STL loader doesn't work in prod (github pages) right now
