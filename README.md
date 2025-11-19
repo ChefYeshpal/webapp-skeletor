@@ -19,6 +19,22 @@ This is a project made for [Siege](siege.hackclub.com) by [Hackclub](hackclub.co
     - Density:
     - Attached muscles:
     - Body region (e.g., head, thorax, limbs)
+    - Function
     - Etymology or origin of names of the thingy
 - [x] Images
     - Should be visible by taking the primary id and searching in the `assets/png/` folder
+
+
+Data should be listed as such:
+- Primitive ID:
+- Primitive Name:
+- Composite ID:
+- Composite Name:
+- [Image]
+- [STL view in new page]
+- Size: length x breadth x height
+- Density
+- Attached Muscles (for bones)
+- Body region
+- Function
+- Etumology
