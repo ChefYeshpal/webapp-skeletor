@@ -5,6 +5,7 @@ This is a project made for [Siege](siege.hackclub.com) by [Hackclub](hackclub.co
 - Skeleton Model: [Artec3d](https://www.artec3d.com/3d-models/human-skeleton-hd)
 - FMA data: [Ontobee.org](https://ontobee.org/)
 - Pictures and stl models: [BodyParts3D](https://github.com/Kevin-Mattheus-Moerman/BodyParts3D)
+- Osteometric data: [DCP2.0 from Mendeley.com](https://data.mendeley.com/datasets/6xwhzs2w38/1)
 
 ### What is the FMA Ontology?
 The Foundational Model of Anatomy Ontology (FMA) is an evolving computer-based knowledge source for biomedical informatics; it is concerned with the representation of classes or types and relationships necessary for the symbolic representation of the phenotypic structure of the human body in a form that is understandable to humans and is also navigable, parseable and interpretable by machine-based systems. Specifically, the FMA is a domain ontology that represents a coherent body of explicit declarative knowledge about human anatomy. Its ontological *framework* can be applied and extended to all other species. [source](http://sig.biostr.washington.edu/projects/fm/AboutFM.html)
