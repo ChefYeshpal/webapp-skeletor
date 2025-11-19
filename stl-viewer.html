@@ -10,6 +10,14 @@
     #hud { position: fixed; top: 8px; left: 8px; background: rgba(0,0,0,0.5); padding: 6px 10px; border-radius: 8px; font-size: 12px; border: 1px solid #333; z-index: 10; }
     a { color: #9ecbff; }
   </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
 </head>
 <body>
   <div id="hud">Drag to rotate • Scroll to zoom • Shift+Drag to pan</div>
