@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 
+console.log('STL Viewer Module Script Started');
+
 function getParam(name) {
   const u = new URL(window.location.href);
   return u.searchParams.get(name);
@@ -57,6 +59,7 @@ function fitCameraToObject(obj, offset = 1.25) {
 }
 
 if (!src) {
+  console.warn('No SRC parameter found in URL');
   const div = document.createElement('div');
   div.textContent = 'No STL source provided.';
   div.style.position = 'fixed';
@@ -65,6 +68,7 @@ if (!src) {
   div.style.transform = 'translate(-50%, -50%)';
   document.body.appendChild(div);
 } else {
+  console.log('Attempting to load STL from:', src);
   loader.load(src, (geometry) => {
     console.log('STL loaded successfully:', src);
     geometry.computeVertexNormals();

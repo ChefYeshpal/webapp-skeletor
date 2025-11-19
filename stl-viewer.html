@@ -10,6 +10,12 @@
     #hud { position: fixed; top: 8px; left: 8px; background: rgba(0,0,0,0.5); padding: 6px 10px; border-radius: 8px; font-size: 12px; border: 1px solid #333; z-index: 10; }
     a { color: #9ecbff; }
   </style>
+  <script>
+    console.log('STL Viewer HTML loaded. Initializing...');
+    window.onerror = function(msg, url, line, col, error) {
+      console.error('Global Error:', msg, 'at', url, ':', line, ':', col, error);
+    };
+  </script>
   <script type="importmap">
     {
       "imports": {
