@@ -23,7 +23,10 @@ This is a project made for [Siege](siege.hackclub.com) by [Hackclub](hackclub.co
     - Etymology or origin of names of the thingy
 - [x] Images
     - Should be visible by taking the primary id and searching in the `assets/png/` folder
-
+- [x] STL viewer
+    - STL files present in `assets/stl/` are linked to their respective primary ID's
+    - Open in a new page
+    - User can rotate and zoom in/out
 
 Data should be listed as such:
 - Primitive ID:
