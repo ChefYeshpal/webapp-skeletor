@@ -66,6 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
         compositeId.textContent = item.composite_id;
         compositeName.textContent = item.composite_name;
         updateImage(item.primitive_id);
+        updateStlButton(item.primitive_id);
     }
 
     function toggleReadme(show) {
@@ -119,6 +120,35 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             img.style.display = 'none';
         }
+    }
+
+    function updateStlButton(primitiveId) {
+        const btn = document.getElementById('view-stl-btn');
+        if (!btn) return;
+        if (!primitiveId) {
+            btn.disabled = true;
+            btn.title = 'No STL found';
+            btn.removeAttribute('data-src');
+            return;
+        }
+        const stlPath = `assets/stl/${primitiveId}.stl`;
+        fetch(stlPath, { method: 'HEAD' })
+            .then(res => {
+                if (res.ok) {
+                    btn.disabled = false;
+                    btn.title = 'Open 3D STL viewer';
+                    btn.setAttribute('data-src', stlPath);
+                } else {
+                    btn.disabled = true;
+                    btn.title = 'No STL found';
+                    btn.removeAttribute('data-src');
+                }
+            })
+            .catch(() => {
+                btn.disabled = true;
+                btn.title = 'No STL found';
+                btn.removeAttribute('data-src');
+            });
     }
 
     document.addEventListener("keydown", (event) => {
@@ -294,6 +324,17 @@ document.addEventListener("DOMContentLoaded", () => {
         highlightItem(currentIndex);
         updateDetails(idx);
     });
+
+    const stlButton = document.getElementById('view-stl-btn');
+    if (stlButton) {
+        stlButton.addEventListener('click', () => {
+            if (stlButton.disabled) return;
+            const src = stlButton.getAttribute('data-src');
+            if (!src) return;
+            const url = `stl-viewer.html?src=${encodeURIComponent(src)}`;
+            window.open(url, '_blank');
+        });
+    }
 
     function debounce(func, wait) {
         let timeout;

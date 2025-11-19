@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FMA Database</title>
     <link rel="stylesheet" href="styles/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown-dark.min.css" integrity="sha512-Uk/9nV1lW8pBhPihsWJ7a0LAlcWn0XbPkm0lY0+QVLW8lN4IlzKmT4UQkYzGx7Qeuh4Z6C8cR9f9uW7a5vEfcA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown-dark.min.css" />
 </head>
 <body>
     <div class="container">
@@ -20,6 +20,9 @@
                 <p><strong>Composite ID:</strong> <span id="composite-id"></span></p>
                 <p><strong>Composite name:</strong> <span id="composite-name"></span></p>
                 <img id="primitive-image" src="" alt="Primitive Image" style="display:none; max-width:100%; margin-top:10px;">
+                <div id="stl-actions" style="margin-top:10px;">
+                    <button id="view-stl-btn" class="btn-pill" disabled title="No STL found">View STL</button>
+                </div>
             </div>
             <div id="readme-view" class="markdown-body" style="display:none;"></div>
         </div>

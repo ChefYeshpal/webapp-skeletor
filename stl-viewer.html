@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>STL Viewer</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #111; color: #eaeaea; font-family: monospace; }
+    #viewer { position: absolute; inset: 0; }
+    #hud { position: fixed; top: 8px; left: 8px; background: rgba(0,0,0,0.5); padding: 6px 10px; border-radius: 8px; font-size: 12px; border: 1px solid #333; z-index: 10; }
+    a { color: #9ecbff; }
+  </style>
+</head>
+<body>
+  <div id="hud">Drag to rotate • Scroll to zoom • Shift+Drag to pan</div>
+  <canvas id="viewer"></canvas>
+  <script type="module" src="stl-viewer.js"></script>
+</body>
+</html>
