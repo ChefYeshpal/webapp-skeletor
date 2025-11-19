@@ -1,5 +1,5 @@
 # webapp-skeletor
-This is a project made for [Siege](siege.hackclub.com) by [Hackclub](hackclub.com). The theme for this project was ["Framework"](https://dictionary.cambridge.org/dictionary/learner-english/framework), and as such, my thinking of making this project, believing that it comes within the theme for this week's project is that: The Human bones and skeletal structure's are the **framework** to the Human body, so this project aims to describe the (major) bones and give detailed classification and information about them.
+This is a project made for [Siege](https://siege.hackclub.com) by [Hackclub](https://hackclub.com). The theme for this project was ["Framework"](https://dictionary.cambridge.org/dictionary/learner-english/framework), and as such, my thinking of making this project, believing that it comes within the theme for this week's project is that: The Human bones and skeletal structure's are the **framework** to the Human body, so this project aims to describe the (major) bones and give detailed classification and information about them.
 
 ## Credits
 - Skeleton Model: [Artec3d](https://www.artec3d.com/3d-models/human-skeleton-hd)
@@ -51,3 +51,5 @@ Data should be listed as such:
 - Muscles dont really work properly when you zoom in to view the stl viewer
     - They just dissapear
     - I wasn't able to find a fix for this yet...
+- Images and `.stl` files might take some time to load depending on your internet connection
+- This entire project is being hosted on [GitHub](https://github.com) Pages, so ofc it's uptime also depends on that.

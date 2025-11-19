@@ -56,6 +56,26 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Apply current selection to right pane (README or details)
+    function applySelection() {
+        highlightItem(currentIndex);
+        if (currentIndex === 0) {
+            displayReadme();
+        } else {
+            updateDetails(currentIndex - 1);
+        }
+    }
+
+    function moveSelection(direction) {
+        const total = 1 + Math.min(filteredData.length, VISIBLE_LIMIT);
+        if (direction === 'down' && currentIndex < total - 1) {
+            currentIndex++;
+        } else if (direction === 'up' && currentIndex > 0) {
+            currentIndex--;
+        }
+        applySelection();
+    }
+
     // Update the right pane with details
     function updateDetails(index) {
         const item = filteredData[index];
@@ -178,17 +198,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (event.key === "/") {
             event.preventDefault();
             openSearchDialog();
-        } else if ((event.key === "j" || event.key === "k") && activeElement.id !== "search-input") {
+            return;
+        }
+        const navKeys = ["j", "k", "ArrowDown", "ArrowUp"];
+        if (navKeys.includes(event.key) && activeElement.id !== "search-input") {
             event.preventDefault();
-            const total = 1 + Math.min(filteredData.length, VISIBLE_LIMIT); // 1 for pinned README
-            if (event.key === "j" && currentIndex < total - 1) {
-                currentIndex++;
-            } else if (event.key === "k" && currentIndex > 0) {
-                currentIndex--;
-            }
-            highlightItem(currentIndex);
-            if (currentIndex === 0) displayReadme();
-            else updateDetails(currentIndex - 1);
+            moveSelection(event.key === "j" || event.key === "ArrowDown" ? 'down' : 'up');
         }
     });
 
@@ -208,6 +223,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const query = searchInput.value;
             filterData(query);
             populateList();
+            if (filteredData.length > 0) {
+                currentIndex = 1; 
+            } else {
+                currentIndex = 0; 
+            }
+            applySelection();
         }, 200);
 
         searchInput.addEventListener("input", debouncedFilter);
@@ -215,6 +236,11 @@ document.addEventListener("DOMContentLoaded", () => {
         searchInput.addEventListener("keydown", (event) => {
             if (event.key === "Escape") {
                 closeSearchDialog();
+                return;
+            }
+            if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                event.preventDefault();
+                moveSelection(event.key === "ArrowDown" ? 'down' : 'up');
             }
         });
     }
