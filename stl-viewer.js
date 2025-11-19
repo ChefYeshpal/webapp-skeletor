@@ -66,6 +66,7 @@ if (!src) {
   document.body.appendChild(div);
 } else {
   loader.load(src, (geometry) => {
+    console.log('STL loaded successfully:', src);
     geometry.computeVertexNormals();
     const material = new THREE.MeshStandardMaterial({ color: 0xb0c4de, metalness: 0.05, roughness: 0.8 });
     const mesh = new THREE.Mesh(geometry, material);
@@ -73,13 +74,20 @@ if (!src) {
     mesh.receiveShadow = true;
     scene.add(mesh);
     fitCameraToObject(mesh);
-  }, undefined, (err) => {
+  }, (xhr) => {
+    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+  }, (err) => {
+    console.error('Error loading STL:', err);
     const div = document.createElement('div');
-    div.textContent = 'Failed to load STL.';
+    div.textContent = 'Failed to load STL. Check console for details.';
     div.style.position = 'fixed';
     div.style.top = '50%';
     div.style.left = '50%';
     div.style.transform = 'translate(-50%, -50%)';
+    div.style.background = 'rgba(0,0,0,0.8)';
+    div.style.padding = '20px';
+    div.style.border = '1px solid #f00';
+    div.style.color = '#f00';
     document.body.appendChild(div);
   });
 }
