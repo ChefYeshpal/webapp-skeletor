@@ -5,3 +5,20 @@ This is a project made for [Siege](siege.hackclub.com) by [Hackclub](hackclub.co
 - Skeleton Model: [Artec3d](https://www.artec3d.com/3d-models/human-skeleton-hd)
 - FMA data: [Ontobee.org](https://ontobee.org/)
 - Pictures and stl models: [BodyParts3D](https://github.com/Kevin-Mattheus-Moerman/BodyParts3D)
+
+## A list of thingies
+- [x] Panes
+    - [x] Left pane has the primary name listed
+    - [x] Right pane shows the data
+- [x] Movement
+    - j/k or up/down arrows for movement
+- [x] Search
+    - [x] Advanced search with parameters
+- [ ] Specifications
+    - Size: lxbxh
+    - Density:
+    - Attached muscles:
+    - Body region (e.g., head, thorax, limbs)
+    - Etymology or origin of names of the thingy
+- [x] Images
+    - Should be visible by taking the primary id and searching in the `assets/png/` folder
