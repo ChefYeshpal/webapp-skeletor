@@ -3,48 +3,64 @@ import requests
 from bs4 import BeautifulSoup
 from time import sleep
 
-# Load data
-with open('../data_enriched.json', 'r', encoding='utf-8') as f:
-    data = json.load(f)
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (compatible; EtymologyFetcher/1.0; +https://yourdomain.example)'
+}
 
-def get_etymology_and_links(word):
+def get_etymology(word: str) -> dict:
     url = f"https://en.wiktionary.org/wiki/{word}"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (compatible; EtymologyFetcher/1.0; +https://yourdomain.example)'
-    }
     try:
-        response = requests.get(url, headers=headers)
-        if response.status_code == 404:
+        resp = requests.get(url, headers=HEADERS, timeout=10)
+        if resp.status_code == 404:
             return {"error": "Page not found", "link": url}
-        if response.status_code != 200:
-            return {"error": f"HTTP {response.status_code}", "link": url}
-        soup = BeautifulSoup(response.text, 'html.parser')
-        ety_header = soup.find(lambda t: t.name in ['h2', 'h3'] and 'etymology' in t.get_text().lower())
+        if resp.status_code != 200:
+            return {"error": f"HTTP {resp.status_code}", "link": url}
+
+        soup = BeautifulSoup(resp.text, 'html.parser')
+        ety_header = None
+        for header in soup.find_all(['h2', 'h3', 'h4']):
+            header_text = header.get_text(separator=' ', strip=True).lower()
+            if 'etymology' in header_text:
+                ety_header = header
+                break
+
         if not ety_header:
             return {"error": "No etymology section", "link": url}
 
         etymology_texts = []
         sublinks = set()
-        for sibling in ety_header.find_next_siblings():
+        current_level = int(ety_header.name[1])
+        
+        parent = ety_header.parent
+        for sibling in parent.find_next_siblings():
             if sibling.name and sibling.name.startswith('h'):
-                break
-            if sibling.name in ['p', 'ul']:
+                level = int(sibling.name[1])
+                if level <= current_level:
+                    break
+            if sibling.name in ['p', 'ul', 'ol', 'div']:
                 text = sibling.get_text(separator=' ', strip=True)
-                etymology_texts.append(text)
+                if text and text.lower() != '[ edit ]':
+                    etymology_texts.append(text)
                 for a in sibling.find_all('a', href=True):
                     href = a['href']
                     if href.startswith('/wiki/') and not href.startswith('/w/'):
-                        full_link = 'https://en.wiktionary.org' + href
-                        sublinks.add(full_link)
+                        sublinks.add('https://en.wiktionary.org' + href)
 
         etymology = ' '.join(etymology_texts).strip()
+        if not etymology:
+            return {"error": "No detailed etymology available", "link": url}
+
         return {
-            'etymology': etymology if etymology else "No detailed etymology available",
-            'sublinks': list(sublinks),
-            'link': url
+            "etymology": etymology,
+            "sublinks": sorted(sublinks),
+            "link": url
         }
+
     except Exception as e:
         return {"error": str(e), "link": url}
+
+with open('../data_enriched.json', 'r', encoding='utf-8') as f:
+    data = json.load(f)
 
 unique_words = set()
 for item in data:
@@ -52,20 +68,21 @@ for item in data:
         words = item.get(key, "").lower().split()
         unique_words.update(words)
 
-stop_words = {"of", "the", "and", "in", "on", "to", "with", "by", "at", "for", "from", "muscle", "disk", "bone"}
+stop_words = {
+    "of", "the", "and", "in", "on", "to", "with",
+    "by", "at", "for", "from", "muscle", "disk", "bone"
+}
 unique_words -= stop_words
 
-etym_dict = {}
+unique_words = list(unique_words)[:10]
+
+etymologies = {}
 for word in unique_words:
-    print(f"Fetching data for: {word}")
-    etym_dict[word] = get_etymology_and_links(word)
-    sleep(1)  # no no rate limit please dont kick me out
+    print(f"Fetching etymology for: {word}")
+    etymologies[word] = get_etymology(word)
+    sleep(1)
 
-output = {
-    "items": data,
-    "etymologies": etym_dict
-}
-with open('../enriched_data_with_etymology_links.json', 'w', encoding='utf-8') as f_out:
-    json.dump(output, f_out, indent=2, ensure_ascii=False)
+with open('../etymologies_only.json', 'w', encoding='utf-8') as f_out:
+    json.dump(etymologies, f_out, indent=2, ensure_ascii=False)
 
-print("All done.")
+print("done.")
