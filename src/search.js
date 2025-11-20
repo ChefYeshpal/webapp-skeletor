@@ -31,9 +31,6 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .catch(error => {
                 assetState.failed = true;
-                // golf is a pretty shitty game, like... you gotta put a ball, in a hole...
-                // And that ball? it can be started like... 100 meters away and BOOM! people make a hole in one somehow?
-                // I'm telling you, this game is rigged (or the players are just insanely good...)
                 console.warn("Asset manifest unavailable; falling back to on-demand checks.", error);
                 return assetState;
             });
@@ -137,7 +134,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Apply current selection to right pane (README or details)
     function applySelection() {
         highlightItem(currentIndex);
         if (currentIndex === 0) {
@@ -168,9 +164,9 @@ document.addEventListener("DOMContentLoaded", () => {
         compositeName.textContent = item.composite_name;
         updateImage(item.primitive_id);
         updateStlButton(item.primitive_id);
-        renderSpecifications(item.specifications);
+        renderMetadata(item);
     }
-
+    
     function toggleReadme(show) {
         const details = document.getElementById("details");
         if (!details || !readmeView) return;
@@ -255,25 +251,187 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     }
 
-    function renderSpecifications(spec) {
+    function renderMetadata(item) {
         const container = document.getElementById('specifications');
-        if (!container) return;
-        container.innerHTML = '';
-        if (!spec || typeof spec !== 'object' || Object.keys(spec).length === 0) {
-            container.innerHTML = '<h4>Specifications</h4><em style="color:#777">None available</em>';
+        if (!container) {
             return;
         }
-        const list = document.createElement('ul');
-        for (const [key, value] of Object.entries(spec)) {
-            const li = document.createElement('li');
-            const prettyKey = key.replace(/_/g,' ').replace(/\b(mm|cm|m)\b/i, '$1');
-            li.innerHTML = `<code>${prettyKey}</code>: ${value}`;
-            list.appendChild(li);
+
+        container.innerHTML = '';
+
+        const sections = [];
+        const specSection = buildSpecSection(item.specifications);
+        if (specSection) {
+            sections.push(specSection);
         }
+
+        const primitiveSection = buildFmaSection('Primitive FMA metadata', item.primitive_fma);
+        if (primitiveSection) {
+            sections.push(primitiveSection);
+        }
+
+        const compositeSection = buildFmaSection('Composite FMA metadata', item.composite_fma);
+        if (compositeSection) {
+            sections.push(compositeSection);
+        }
+
+        /**
+         * Never gonna give you up
+         * never gonna let you down
+         * never gonna run around and desert you~
+         * never gonna make you cry
+         * never gonna say goodbye
+         * never gonna tell a lie and hurt you~
+         *      - Mah idol, Rick Astley :)
+         */
+        
+        if (sections.length === 0) {
+            const heading = document.createElement('h4');
+            heading.textContent = 'Specifications';
+            container.appendChild(heading);
+            const none = document.createElement('em');
+            none.style.color = '#777';
+            none.textContent = 'None available';
+            container.appendChild(none);
+            return;
+        }
+
+        sections.forEach(section => container.appendChild(section));
+    }
+
+    function buildSpecSection(spec) {
+        if (!spec || typeof spec !== 'object' || Object.keys(spec).length === 0) {
+            return null;
+        }
+
+        const list = document.createElement('ul');
+        Object.entries(spec).forEach(([key, value]) => {
+            if (value === undefined || value === null || value === '') {
+                return;
+            }
+            const li = document.createElement('li');
+            const prettyKey = key.replace(/_/g, ' ').replace(/\b(mm|cm|m)\b/i, '$1');
+            const label = document.createElement('code');
+            label.textContent = prettyKey;
+            li.appendChild(label);
+            li.appendChild(document.createTextNode(': '));
+            const renderedValue = renderValue(value);
+            if (!renderedValue) {
+                return;
+            }
+            li.appendChild(renderedValue);
+            list.appendChild(li);
+        });
+
+        if (!list.childNodes.length) {
+            return null;
+        }
+
+        return createSection('Specifications', list);
+    }
+
+    function buildFmaSection(title, meta) {
+        if (!meta || typeof meta !== 'object' || Object.keys(meta).length === 0) {
+            return null;
+        }
+
+        const list = document.createElement('ul');
+        appendMetaEntry(list, 'FMA ID', meta.fma_id || meta.fmaid);
+        appendMetaEntry(list, 'Numeric ID', meta.fmaid);
+        appendMetaEntry(list, 'Preferred Label', meta.preferred_label);
+        appendMetaEntry(list, 'URI', meta.uri);
+        appendMetaEntry(list, 'Synonyms', meta.synonyms);
+        appendMetaEntry(list, 'Definitions', meta.definitions);
+        appendMetaEntry(list, 'Parents', meta.parents);
+
+        if (!list.childNodes.length) {
+            return null;
+        }
+
+        return createSection(title, list);
+    }
+
+    function appendMetaEntry(list, label, value) {
+        if (value === undefined || value === null) {
+            return;
+        }
+        if (Array.isArray(value) && value.length === 0) {
+            return;
+        }
+        if (typeof value === 'string' && !value.trim()) {
+            return;
+        }
+
+        const rendered = renderValue(value);
+        if (!rendered) {
+            return;
+        }
+
+        const li = document.createElement('li');
+        const labelNode = document.createElement('code');
+        labelNode.textContent = label;
+        li.appendChild(labelNode);
+        li.appendChild(document.createTextNode(': '));
+        li.appendChild(rendered);
+        list.appendChild(li);
+    }
+
+    function createSection(title, contentNode) {
+        const section = document.createElement('section');
+        section.className = 'spec-section';
         const heading = document.createElement('h4');
-        heading.textContent = 'Specifications';
-        container.appendChild(heading);
-        container.appendChild(list);
+        heading.textContent = title;
+        section.appendChild(heading);
+        section.appendChild(contentNode);
+        return section;
+    }
+
+    function renderValue(value) {
+        if (value === undefined || value === null) {
+            return null;
+        }
+
+        if (Array.isArray(value)) {
+            if (value.length === 0) {
+                return null;
+            }
+            const fragment = document.createDocumentFragment();
+            let first = true;
+            value.forEach(entry => {
+                const renderedEntry = renderValue(entry);
+                if (!renderedEntry) {
+                    return;
+                }
+                if (!first) {
+                    fragment.append(document.createTextNode(', '));
+                }
+                fragment.append(renderedEntry);
+                first = false;
+            });
+            return first ? null : fragment;
+        }
+
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            if (!trimmed) {
+                return null;
+            }
+            if (/^https?:\/\//i.test(trimmed)) {
+                const link = document.createElement('a');
+                link.href = trimmed;
+                link.textContent = trimmed;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                return link;
+            }
+            const span = document.createElement('span');
+            span.textContent = trimmed;
+            return span;
+        }
+
+        const span = document.createElement('span');
+        span.textContent = String(value);
+        return span;
     }
 
     document.addEventListener("keydown", (event) => {
