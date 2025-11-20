@@ -108,6 +108,9 @@ body {
 #specifications ul { list-style: none; padding: 0; margin: 0; }
 #specifications li { margin: 2px 0; }
 #specifications code { background: #2a2a2a; padding: 1px 4px; border-radius: 4px; }
+#specifications .spec-section + .spec-section { margin-top: 12px; padding-top: 8px; border-top: 1px solid #2a2a2a; }
+#specifications a { color: #9cdcfe; text-decoration: none; }
+#specifications a:hover { text-decoration: underline; }
 
 #readme-view a {
     color: #569cd6;
