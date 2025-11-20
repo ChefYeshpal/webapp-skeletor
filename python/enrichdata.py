@@ -1,3 +1,9 @@
+############# N O T I C E #############
+# This mixes the data of the DCP osteometric xlsx file with the json by corresponding to it's respective entries
+# But I think I fucked up somewhere, and now there's incorrect data in multiple places
+# If you dont know what I'm taking about, it's the WAYY to many number of `260 mm` height/length that's in the specifications...
+#######################################
+
 import json
 from pathlib import Path
 

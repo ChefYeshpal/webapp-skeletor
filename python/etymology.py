@@ -1,3 +1,11 @@
+############# N O T I C E #############
+# This scrapes the data off of wikitionary.org to get etymology and pronunciation data for words
+# Taking unique words (exceptions include: "of", "the", "and", "in", "on", "to", "with", "by", "at", "for", "from", "muscle", "disk", "bone")
+# And then stores it in etymologies_only.json
+#
+# I wanna thank Pebble Fischer (https://hackclub.slack.com/team/U09UTARN116) for helping me in how to think for this section, seriously... I probably would still be poking and prodding if not for them...
+#######################################
+
 import json
 import requests
 from bs4 import BeautifulSoup
