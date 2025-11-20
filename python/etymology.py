@@ -150,7 +150,7 @@ stop_words = {
 }
 unique_words -= stop_words
 
-unique_words = list(unique_words)[:10]
+unique_words = sorted(unique_words)
 
 etymologies = {}
 for word in unique_words:
