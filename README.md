@@ -12,6 +12,7 @@ This is a project made for [Siege](https://siege.hackclub.com) by [Hackclub](htt
 - Pictures and stl models: [BodyParts3D](https://github.com/Kevin-Mattheus-Moerman/BodyParts3D) by [Kevin Mattheus Moerman](https://github.com/Kevin-Mattheus-Moerman)
 - Osteometric data: [DCP2.0 from Mendeley.com](https://data.mendeley.com/datasets/6xwhzs2w38/1)
 - CSV Dump of FMA: [fma-sqlite](https://github.com/mhalle/fma-sqlite) by [mhalle](https://github.com/mhalle)
+- [Pebble Fischer](https://hackclub.slack.com/team/U09UTARN116) for giving me the idea of how to scrape data using python
 
 ### What is the FMA Ontology?
 *"The Foundational Model of Anatomy Ontology (FMA) is an evolving computer-based knowledge source for biomedical informatics; it is concerned with the representation of classes or types and relationships necessary for the symbolic representation of the phenotypic structure of the human body in a form that is understandable to humans and is also navigable, parseable and interpretable by machine-based systems. Specifically, the FMA is a domain ontology that represents a coherent body of explicit declarative knowledge about human anatomy. Its ontological **framework** can be applied and extended to all other species."* [source](http://sig.biostr.washington.edu/projects/fm/AboutFM.html)
