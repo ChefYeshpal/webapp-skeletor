@@ -56,13 +56,15 @@ Data should be listed as such:
     - Etymology
 
 ### A few warnings:
-- This is my first time working with json files and representating data, although I will try to make it as accurate as I can, but cracks may still slip through. If you find any discrepencies or know how to improve this project, please make a fork of [this project](https://Github.com/ChefYeshpal/webapp-skeletor), then create a pull request :)
+- This is my first time working with json files and representating data, although I will try to make it as accurate as I can, but cracks may still slip through. If you find any discrepencies or know how to improve this project, please make a fork of [this project](https://Github.com/ChefYeshpal/webapp-skeletor), then create a pull request :
 - Images and `.stl` files might take some time to load depending on your internet connection
 - This entire project is being hosted on [GitHub](https://github.com) Pages, so ofc it's uptime also depends on that.
 - The specifications isn't exactly accurate
     - I honestly dont know where it kind of wen't wrong, but it'll take me a while to be able to figure out what all entries are wrong...
 - The `URI` doesn't currently work because [Archive.org](https://archive.org/) is showing a 502 error code
-    - Upon searching a bit about it on the internet, I saw that it's rather unstable for some reason. [Reddit](https://www.reddit.com/r/semanticweb/comments/1galfob/purl_is_down/)
+    - Upon searching a bit about it on the internet, I saw that it's rather unstable and usually gets outages[Reddit](https://www.reddit.com/r/semanticweb/comments/1galfob/purl_is_down/)
     - Tho seems like this has been going on for a year now...
-- Man I just can't get things properly working...
-- WTF WHY ISN'T IT DEPLOYING ON GH PAGES?!?!??!?
+    - I am keeping the links are they are for now, at least until I come across another website which hosts the data in a more descriptive fashion
+- The etymological and pronounciation data is scraped from [Wikitionary.org](https://en.wiktionary.org/)
+    - The python file used is `python/etymology.py`, and the data is in `etymologies_only.json`
+    - The data can still be scoured through and refined more, but considering how it's workable, I think it's fine?
