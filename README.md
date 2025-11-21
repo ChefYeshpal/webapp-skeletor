@@ -32,7 +32,7 @@ This is a project made for [Siege](https://siege.hackclub.com) by [Hackclub](htt
     - [ ] Attached muscles:
     - [ ] Body region (e.g., head, thorax, limbs)
     - [ ] Function
-    - [ ] Etymology or origin of names of the thingy
+    - [x] Etymology or origin of names of the thingy
 - [x] Images
     - Should be visible by taking the primary id and searching in the `assets/png/` folder
 - [x] STL viewer
@@ -56,6 +56,7 @@ Data should be listed as such:
     - Etymology
 
 ### A few warnings:
+- This is my first time working with json files and representating data, although I will try to make it as accurate as I can, but cracks may still slip through. If you find any discrepencies or know how to improve this project, please make a fork of [this project](https://Github.com/ChefYeshpal/webapp-skeletor), then create a pull request :)
 - Images and `.stl` files might take some time to load depending on your internet connection
 - This entire project is being hosted on [GitHub](https://github.com) Pages, so ofc it's uptime also depends on that.
 - The specifications isn't exactly accurate
