@@ -87,20 +87,24 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentIndex = 0;
     let data = [];
     let filteredData = [];
+    let etymologyData = {};
     const VISIBLE_LIMIT = 300;
     let highlightTerms = [];
 
-    fetch("data_enriched.json")
-        .then(response => response.json())
-        .then(jsonData => {
-            data = jsonData;
-            filteredData = data;
-            populateList();
-            currentIndex = 0;
-            highlightItem(currentIndex);
-            displayReadme();
-        })
-        .catch(error => console.error("Error loading data.json:", error));
+    Promise.all([
+        fetch("data_enriched.json").then(res => res.json()),
+        fetch("etymologies_only.json").then(res => res.json())
+    ])
+    .then(([jsonData, etymData]) => {
+        data = jsonData;
+        etymologyData = etymData;
+        filteredData = data;
+        populateList();
+        currentIndex = 0;
+        highlightItem(currentIndex);
+        displayReadme();
+    })
+    .catch(error => console.error("Error loading data:", error));
 
     // Populate the left pane with primitive names
     function populateList() {
@@ -165,6 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateImage(item.primitive_id);
         updateStlButton(item.primitive_id);
         renderMetadata(item);
+        renderEtymology(item.primitive_name);
     }
     
     function toggleReadme(show) {
@@ -283,6 +288,9 @@ document.addEventListener("DOMContentLoaded", () => {
          * never gonna say goodbye
          * never gonna tell a lie and hurt you~
          *      - Mah idol, Rick Astley :)
+         * 
+         * I dont think anybody would ever fall for this rick roll
+         * But lets see eh...
          */
         
         if (sections.length === 0) {
@@ -434,6 +442,96 @@ document.addEventListener("DOMContentLoaded", () => {
         return span;
     }
 
+    function renderEtymology(name) {
+        const container = document.getElementById('etymology-data');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        container.style.display = 'none';
+
+        if (!name || !etymologyData) return;
+
+        // Tokenize name and filter unique words
+        const tokens = [...new Set(name.toLowerCase().split(/[^a-z]+/))];
+        const foundWords = tokens.filter(token => etymologyData[token]);
+
+        if (foundWords.length === 0) return;
+
+        foundWords.forEach(word => {
+            const data = etymologyData[word];
+            const section = document.createElement('section');
+            section.className = 'spec-section';
+            
+            const heading = document.createElement('h4');
+            heading.textContent = word.charAt(0).toUpperCase() + word.slice(1);
+            section.appendChild(heading);
+
+            const list = document.createElement('ul');
+
+            // Etymology + pronounciation + links for ya'll
+            if (data.etymology) {
+                const li = document.createElement('li');
+                const label = document.createElement('code');
+                label.textContent = 'Etymology';
+                li.appendChild(label);
+                li.appendChild(document.createTextNode(': '));
+                
+                const span = document.createElement('span');
+                span.textContent = data.etymology;
+                li.appendChild(span);
+                list.appendChild(li);
+            }
+
+            if (data.pronunciation && data.pronunciation.length > 0) {
+                const li = document.createElement('li');
+                const label = document.createElement('code');
+                label.textContent = 'Pronunciation';
+                li.appendChild(label);
+                li.appendChild(document.createTextNode(': '));
+                
+                const pronList = document.createElement('ul');
+                pronList.style.paddingLeft = '15px';
+                pronList.style.marginTop = '5px';
+                
+                data.pronunciation.forEach(p => {
+                    const pLi = document.createElement('li');
+                    let text = '';
+                    if (p.dialect) text += `${p.dialect}: `;
+                    if (p.ipa && Array.isArray(p.ipa)) {
+                        text += p.ipa.join(', ');
+                    }
+                    pLi.textContent = text;
+                    pronList.appendChild(pLi);
+                });
+                li.appendChild(pronList);
+                list.appendChild(li);
+            }
+
+            if (data.link) {
+                const li = document.createElement('li');
+                const label = document.createElement('code');
+                label.textContent = 'Link';
+                li.appendChild(label);
+                li.appendChild(document.createTextNode(': '));
+                
+                const a = document.createElement('a');
+                a.href = data.link;
+                a.textContent = data.link;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                li.appendChild(a);
+                list.appendChild(li);
+            }
+            
+            section.appendChild(list);
+            container.appendChild(section);
+        });
+
+        if (container.hasChildNodes()) {
+            container.style.display = 'block';
+        }
+    }
+
     document.addEventListener("keydown", (event) => {
         const activeElement = document.activeElement;
         if (event.key === "/") {
@@ -566,7 +664,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function matchByMode(source, value, mode, caseInsensitive) {
         const s = caseInsensitive ? String(source).toLowerCase() : String(source);
         const v = caseInsensitive ? String(value).toLowerCase() : String(value);
-        if (mode === "exact") return s === v; // accuracy: whole ID must match
+        if (mode === "exact") return s === v;
         if (mode === "starts") return s.startsWith(v); 
         return s.includes(v);
     }

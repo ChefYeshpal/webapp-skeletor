@@ -87,7 +87,8 @@ body {
     cursor: not-allowed;
 }
 
-#specifications {
+#specifications,
+#etymology-data {
     font-size: 12px;
     line-height: 1.4;
     color: #cfcfcf;
@@ -98,19 +99,21 @@ body {
     max-width: 420px;
 }
 
-#specifications h4 {
+#specifications h4,
+#etymology-data h4 {
     margin: 0 0 6px 0;
     font-size: 13px;
     color: #569cd6;
     font-weight: 600;
 }
 
-#specifications ul { list-style: none; padding: 0; margin: 0; }
-#specifications li { margin: 2px 0; }
-#specifications code { background: #2a2a2a; padding: 1px 4px; border-radius: 4px; }
-#specifications .spec-section + .spec-section { margin-top: 12px; padding-top: 8px; border-top: 1px solid #2a2a2a; }
-#specifications a { color: #9cdcfe; text-decoration: none; }
-#specifications a:hover { text-decoration: underline; }
+#specifications ul, #etymology-data ul { list-style: none; padding: 0; margin: 0; }
+#specifications li, #etymology-data li { margin: 2px 0; }
+#specifications code, #etymology-data code { background: #2a2a2a; padding: 1px 4px; border-radius: 4px; }
+#specifications .spec-section + .spec-section,
+#etymology-data .spec-section + .spec-section { margin-top: 12px; padding-top: 8px; border-top: 1px solid #2a2a2a; }
+#specifications a, #etymology-data a { color: #9cdcfe; text-decoration: none; }
+#specifications a:hover, #etymology-data a:hover { text-decoration: underline; }
 
 #readme-view a {
     color: #569cd6;

@@ -86,15 +86,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let currentIndex = 0;
     let data = [];
+    let etymologyData = {};
 
-    fetch("data_enriched.json")
-        .then(response => response.json())
-        .then(jsonData => {
-            data = sortData(jsonData);
-            populateList();
-            updateDetails(0);
-        })
-        .catch(error => console.error("Error loading data.json:", error));
+    Promise.all([
+        fetch("data_enriched.json").then(res => res.json()),
+        fetch("etymologies_only.json").then(res => res.json())
+    ])
+    .then(([jsonData, etymData]) => {
+        data = sortData(jsonData);
+        etymologyData = etymData;
+        populateList();
+        updateDetails(0);
+    })
+    .catch(error => console.error("Error loading data:", error));
 
     // data prioritization
     function sortData(data) {
@@ -135,6 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
         compositeName.textContent = item.composite_name;
         updateImage(item.primitive_id);
         renderMetadata(item);
+        renderEtymology(item.primitive_name);
     }
 
     function renderMetadata(item) {
@@ -336,6 +341,96 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
         } else {
             primitiveImage.style.display = 'none';
+        }
+    }
+
+    function renderEtymology(name) {
+        const container = document.getElementById('etymology-data');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        container.style.display = 'none';
+
+        if (!name || !etymologyData) return;
+
+        // Tokenize name + filter unique words
+        const tokens = [...new Set(name.toLowerCase().split(/[^a-z]+/))];
+        const foundWords = tokens.filter(token => etymologyData[token]);
+
+        if (foundWords.length === 0) return;
+
+        foundWords.forEach(word => {
+            const data = etymologyData[word];
+            const section = document.createElement('section');
+            section.className = 'spec-section';
+            
+            const heading = document.createElement('h4');
+            heading.textContent = word.charAt(0).toUpperCase() + word.slice(1);
+            section.appendChild(heading);
+
+            const list = document.createElement('ul');
+
+            // Honestly i'm so close to being done...
+            if (data.etymology) {
+                const li = document.createElement('li');
+                const label = document.createElement('code');
+                label.textContent = 'Etymology';
+                li.appendChild(label);
+                li.appendChild(document.createTextNode(': '));
+                
+                const span = document.createElement('span');
+                span.textContent = data.etymology;
+                li.appendChild(span);
+                list.appendChild(li);
+            }
+
+            if (data.pronunciation && data.pronunciation.length > 0) {
+                const li = document.createElement('li');
+                const label = document.createElement('code');
+                label.textContent = 'Pronunciation';
+                li.appendChild(label);
+                li.appendChild(document.createTextNode(': '));
+                
+                const pronList = document.createElement('ul');
+                pronList.style.paddingLeft = '15px';
+                pronList.style.marginTop = '5px';
+                
+                data.pronunciation.forEach(p => {
+                    const pLi = document.createElement('li');
+                    let text = '';
+                    if (p.dialect) text += `${p.dialect}: `;
+                    if (p.ipa && Array.isArray(p.ipa)) {
+                        text += p.ipa.join(', ');
+                    }
+                    pLi.textContent = text;
+                    pronList.appendChild(pLi);
+                });
+                li.appendChild(pronList);
+                list.appendChild(li);
+            }
+
+            if (data.link) {
+                const li = document.createElement('li');
+                const label = document.createElement('code');
+                label.textContent = 'Link';
+                li.appendChild(label);
+                li.appendChild(document.createTextNode(': '));
+                
+                const a = document.createElement('a');
+                a.href = data.link;
+                a.textContent = data.link;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                li.appendChild(a);
+                list.appendChild(li);
+            }
+            
+            section.appendChild(list);
+            container.appendChild(section);
+        });
+
+        if (container.hasChildNodes()) {
+            container.style.display = 'block';
         }
     }
 
