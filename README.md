@@ -56,7 +56,7 @@ Data should be listed as such:
     - Etymology
 
 ### A few warnings:
-- This is my first time working with json files and representating data, although I will try to make it as accurate as I can, but cracks may still slip through. If you find any discrepencies or know how to improve this project, please make a fork of [this project](https://Github.com/ChefYeshpal/webapp-skeletor), then create a pull request :
+- This is my first time working with json files and representating data, although I will try to make it as accurate as I can, but cracks may still slip through. If you find any discrepencies or know how to improve this project, please make a fork of [this project](https://Github.com/ChefYeshpal/webapp-skeletor), then create a pull request
 - Images and `.stl` files might take some time to load depending on your internet connection
 - This entire project is being hosted on [GitHub](https://github.com) Pages, so ofc it's uptime also depends on that.
 - The specifications isn't exactly accurate
