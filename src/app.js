@@ -371,7 +371,20 @@ document.addEventListener("DOMContentLoaded", () => {
             const list = document.createElement('ul');
 
             // Honestly i'm so close to being done...
-            if (data.etymology) {
+            if (data.etymologies) {
+                Object.entries(data.etymologies).forEach(([type, text]) => {
+                    const li = document.createElement('li');
+                    const label = document.createElement('code');
+                    label.textContent = type === 'general' ? 'Etymology' : `Etymology (${type})`;
+                    li.appendChild(label);
+                    li.appendChild(document.createTextNode(': '));
+                    // im going to bingewatch breaking bad
+                    const span = document.createElement('span');
+                    span.textContent = text;
+                    li.appendChild(span);
+                    list.appendChild(li);
+                });
+            } else if (data.etymology) {
                 const li = document.createElement('li');
                 const label = document.createElement('code');
                 label.textContent = 'Etymology';
