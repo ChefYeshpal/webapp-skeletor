@@ -1,8 +1,9 @@
 ############# N O T I C E #############
-# This scrapes the data off of wiktionary.org to get etymology and pronunciation data for words
-# Taking unique words (exceptions include: "of", "the", "and", "in", "on", "to", "with",
-# "by", "at", "for", "from", "muscle", "disk", "bone")
+# This scrapes the data off of wikitionary.org to get etymology and pronunciation data for words
+# Taking unique words (exceptions include: "of", "the", "and", "in", "on", "to", "with", "by", "at", "for", "from", "muscle", "disk", "bone")
 # And then stores it in etymologies_only.json
+#
+# I wanna thank Pebble Fischer (https://hackclub.slack.com/team/U09UTARN116) for helping me in how to think for this section, seriously... I probably would still be poking and prodding if not for them...
 #######################################
 
 import json
@@ -19,7 +20,7 @@ def _extract_section(soup: BeautifulSoup, keywords) -> str:
     """Extract the textual content of the first section whose header contains any of the given keywords.
     Stops before the next header of same or higher level.
     Returns an empty string if not found.
-    (Used as a generic helper, e.g. for Pronunciation.)
+    (Used as a generic helper, like for Pronunciation.)
     """
     if isinstance(keywords, str):
         keywords = [keywords]
@@ -85,8 +86,23 @@ def _clean_etymology_text(text: str) -> str:
         idx = lower.find(marker.lower())
         if idx != -1:
             cut_pos = min(cut_pos, idx)
+    text = text[:cut_pos].strip()
+    text = re.sub(r'\[\s*\d+\s*\]', '', text)  
+    text = (text
+            .replace('“', '"')
+            .replace('”', '"')
+            .replace('‘', "'")
+            .replace('’', "'"))
 
-    return text[:cut_pos].strip()
+    text = re.sub(r'\(\s+', '(', text)
+    text = re.sub(r'\s+\)', ')', text)
+    text = re.sub(r'"\s+([^"]*?)\s+"', r'"\1"', text)
+    text = re.sub(r"'\s+([^']*?)\s+'", r"'\1'", text)
+    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r'\s+([.,;:!?])', r'\1', text)
+
+    return text.strip()
+
 
 def _extract_etymologies_for_english(soup: BeautifulSoup) -> dict:
     """Extract English etymology sections as a dict.
@@ -146,10 +162,6 @@ def _extract_etymologies_for_english(soup: BeautifulSoup) -> dict:
     return etys
 
 def _refine_pronunciation(raw: str) -> list:
-    """Parse raw pronunciation text into structured list of entries.
-    Each entry: {"dialect": <str>, "ipa": [<forms>]}.
-    Removes audio references and ignores Hyphenation/Rhymes/Homophone markers.
-    """
     if not raw:
         return []
     raw = re.sub(r'Audio\s*\([^)]*\)\s*:\s*\(\s*file\s*\)', ' ', raw, flags=re.IGNORECASE)
@@ -206,10 +218,8 @@ def get_etymology(word: str) -> dict:
 
         soup = BeautifulSoup(resp.text, 'html.parser')
 
-        # New: multiple English etymologies, cleaned
         etymologies = _extract_etymologies_for_english(soup)
 
-        # Fallback: generic single section (any language / weird pages)
         if not etymologies:
             ety = _extract_section(soup, 'etymology')
             ety = _clean_etymology_text(ety)
@@ -252,10 +262,9 @@ unique_words -= stop_words
 
 unique_words = sorted(unique_words)
 
-limited_words = unique_words[:10]
 
 etymologies = {}
-for word in limited_words:
+for word in unique_words:
     print(f"Fetching etymology for: {word}")
     etymologies[word] = get_etymology(word)
     sleep(1)

@@ -1,5 +1,5 @@
 ############# N O T I C E #############
-# This mixes the data of the DCP osteometric xlsx file with the json by corresponding to it's respective entries
+# This mixes the data of the `DCP-osteometric-xlsx` file with the json by corresponding to it's respective entries
 # But I think I fucked up somewhere, and now there's incorrect data in multiple places
 # If you dont know what I'm taking about, it's the WAYY to many number of `260 mm` height/length that's in the specifications...
 #######################################
@@ -45,7 +45,6 @@ bone_prefixes = {
 }
 
 def convert_for_json(value):
-    """Convert numpy types to native Python types for JSON serialization."""
     if isinstance(value, (np.integer, np.int64)):
         return int(value)
     elif isinstance(value, (np.floating, np.float64)):
@@ -54,7 +53,6 @@ def convert_for_json(value):
 
 
 def split_multi_value(value):
-    """Split pipe-delimited cells into a clean list."""
     if not value or not isinstance(value, str):
         return []
     parts = [part.strip() for part in value.split('|') if part.strip()]
@@ -62,7 +60,6 @@ def split_multi_value(value):
 
 
 def normalise_fma_ids(row):
-    """Return the set of normalised FMA identifiers for a CSV row."""
     candidates = []
     class_id = str(row.get('Class ID', '')).strip()
     if class_id:
@@ -101,7 +98,6 @@ def normalise_fma_ids(row):
 
 
 def build_fma_lookup(csv_path):
-    """Build a lookup of FMA metadata keyed by multiple identifier variants."""
     try:
         fma_df = pd.read_csv(csv_path, dtype=str, keep_default_na=False)
     except FileNotFoundError:
